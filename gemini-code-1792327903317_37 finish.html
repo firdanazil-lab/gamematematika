@@ -1,0 +1,1845 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Math Jumper - Petualangan Pecahan Kelas 7</title>
+    <!-- Import Font Pixel Art Google -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap">
+    
+    <style>
+        /* RESET & DASAR */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+        }
+
+        body, html {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            font-family: 'Press Start 2P', cursive, monospace;
+        }
+
+        /* Container Utama Game */
+        .game-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            background: linear-gradient(to bottom, #7ec0ee 0%, #a6d8ff 70%, #cceeff 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        /* TOMBOL AUDIO DI POJOK KIRI ATAS */
+        .audio-control-btn {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            z-index: 200;
+            pointer-events: auto;
+            background-color: #ffffff;
+            border: 4px solid #1e293b;
+            border-radius: 12px;
+            width: 48px;
+            height: 48px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            box-shadow: 0 4px 0 #1e293b;
+            transition: transform 0.1s, box-shadow 0.1s;
+        }
+
+        .audio-control-btn:hover { transform: translateY(-2px); }
+        .audio-control-btn:active { transform: translateY(2px); box-shadow: 0 2px 0 #1e293b; }
+
+        .audio-icon {
+            width: 24px;
+            height: 24px;
+            fill: #1e293b;
+            pointer-events: none;
+        }
+
+        /* PANEL SKOR & BINTANG & NYAWA DI POJOK KANAN ATAS */
+        .score-board-custom {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            z-index: 200;
+            background-color: #1e293b;
+            border: 4px solid #ffd000;
+            border-radius: 14px;
+            padding: 10px 14px;
+            box-shadow: 0 4px 0 rgba(0, 0, 0, 0.2);
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            pointer-events: auto;
+        }
+
+        .score-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.65rem;
+            color: #ffffff;
+            letter-spacing: 1px;
+            gap: 10px;
+        }
+
+        .score-value { color: #ffd000; }
+        .lives-value { color: #ef4444; }
+
+        .stars-container {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            color: #ffd000;
+        }
+
+        .star-icon {
+            width: 14px;
+            height: 14px;
+            fill: #ffd000;
+        }
+
+        /* TOMBOL NAVIGASI UMUM */
+        .back-button-area {
+            position: absolute;
+            left: 25px;
+            bottom: 25px;
+            z-index: 20;
+        }
+
+        .back-btn {
+            position: relative;
+            background-color: #f87171;
+            border: 4px solid #1e293b;
+            border-radius: 14px;
+            padding: 12px 24px;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 0.85rem;
+            color: #ffffff;
+            cursor: pointer;
+            box-shadow: 0 5px 0 #1e293b;
+            transition: transform 0.1s, box-shadow 0.1s;
+            white-space: nowrap;
+        }
+
+        .back-btn:hover { transform: translateY(-2px); }
+        .back-btn:active { transform: translateY(3px); box-shadow: 0 2px 0 #1e293b; }
+
+        .next-button-area {
+            position: absolute;
+            right: 25px;
+            bottom: 25px;
+            z-index: 20;
+        }
+
+        .next-btn {
+            position: relative;
+            background-color: #ffd000;
+            border: 4px solid #1e293b;
+            border-radius: 14px;
+            padding: 12px 28px;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 0.85rem;
+            color: #1e293b;
+            cursor: pointer;
+            box-shadow: 0 5px 0 #1e293b;
+            transition: transform 0.1s, box-shadow 0.1s;
+            white-space: nowrap;
+        }
+
+        .next-btn:hover { transform: translateY(-2px); }
+        .next-btn:active { transform: translateY(3px); box-shadow: 0 2px 0 #1e293b; }
+
+        /* DEKORASI LINGKUNGAN */
+        .clouds {
+            position: absolute;
+            top: 10%; left: 0;
+            width: 200%; height: 100px;
+            background-image: 
+                radial-gradient(circle at 50px 50px, #ffffff 30px, transparent 0),
+                radial-gradient(circle at 80px 40px, #ffffff 35px, transparent 0),
+                radial-gradient(circle at 110px 50px, #ffffff 30px, transparent 0),
+                radial-gradient(circle at 450px 60px, #ffffff 25px, transparent 0),
+                radial-gradient(circle at 480px 50px, #ffffff 30px, transparent 0);
+            opacity: 0.85;
+            animation: moveClouds 35s linear infinite;
+        }
+
+        @keyframes moveClouds {
+            from { transform: translateX(0); }
+            to { transform: translateX(-50%); }
+        }
+
+        .trees {
+            position: absolute;
+            bottom: 0; left: 5%;
+            display: flex; gap: 15px; z-index: 2;
+        }
+
+        .tree {
+            width: 0; height: 0;
+            border-left: 20px solid transparent;
+            border-right: 20px solid transparent;
+            border-bottom: 50px solid #4d924d;
+        }
+
+        .ground-container {
+            position: absolute; bottom: 0; left: 0;
+            width: 100%; height: 90px; z-index: 3;
+            display: flex; flex-direction: column;
+        }
+
+        .grass-layer {
+            width: 100%; height: 18px;
+            background-color: #7ec850;
+            border-top: 4px solid #a2e06a;
+            border-bottom: 4px solid #4e8b23;
+        }
+
+        .dirt-layer {
+            width: 100%; height: 72px;
+            background-color: #8b5a2b;
+            background-image: radial-gradient(#6d421e 15%, transparent 16%);
+            background-size: 20px 20px;
+        }
+
+        /* SISTEM HALAMAN */
+        .page {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease-in-out;
+            z-index: 10;
+            padding: 20px;
+        }
+
+        .page.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        /* HALAMAN 1 DESIGN */
+        .header-area { 
+            position: absolute;
+            top: 50px; 
+            z-index: 10; 
+            text-align: center; 
+            padding: 0 20px;
+        }
+
+        .title-speech-bubble {
+            background: #eef6ff;
+            border: 6px solid #1e293b;
+            border-radius: 20px;
+            padding: 18px 28px;
+            box-shadow: 0 8px 0 #1e293b;
+            display: inline-block;
+        }
+
+        .title-text {
+            font-size: 2rem;
+            color: #ff7700;
+            text-shadow: 3px 3px 0 #1e293b;
+            line-height: 1.3;
+        }
+
+        .main-stage {
+            position: absolute;
+            bottom: 90px; width: 100%; max-width: 800px;
+            height: 300px; display: flex; justify-content: center; align-items: flex-end;
+            z-index: 5;
+            pointer-events: none;
+        }
+
+        .character-box {
+            position: absolute; left: 20%; bottom: 0;
+            width: 50px; height: 60px;
+            animation: pixelJump 1.2s cubic-bezier(0.28, 0.84, 0.42, 1) infinite;
+        }
+
+        @keyframes pixelJump {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-30px); }
+        }
+
+        .pixel-hero { width: 100%; height: 100%; image-rendering: pixelated; }
+
+        .start-button-area {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            bottom: 25px;
+            z-index: 15;
+            pointer-events: auto;
+        }
+
+        .bubble-btn {
+            position: relative;
+            background-color: #ffd000;
+            border: 5px solid #1e293b;
+            border-radius: 18px;
+            padding: 16px 40px;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 1.1rem;
+            color: #1e293b;
+            cursor: pointer;
+            box-shadow: 0 6px 0 #1e293b;
+            transition: transform 0.1s, box-shadow 0.1s;
+            white-space: nowrap;
+        }
+
+        .bubble-btn:hover { transform: translateY(-3px); }
+        .bubble-btn:active { transform: translateY(3px); box-shadow: 0 2px 0 #1e293b; }
+
+        /* CARDS / KOTAK KONTEN UMUM */
+        .game-card {
+            background: #ffffff;
+            border: 5px solid #1e293b;
+            border-radius: 18px;
+            padding: 24px 20px;
+            box-shadow: 0 8px 0 #1e293b;
+            text-align: center;
+            max-width: 680px;
+            width: 92%;
+            z-index: 15;
+            margin-bottom: 30px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .card-title {
+            font-size: 1rem;
+            color: #ff7700;
+            margin-bottom: 18px;
+            line-height: 1.4;
+            text-transform: uppercase;
+        }
+
+        .card-body {
+            font-size: 0.62rem;
+            color: #1e293b;
+            line-height: 2;
+            margin-bottom: 15px;
+        }
+
+        /* SUSUNAN TOMBOL VERTIKAL */
+        .vertical-menu {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            width: 100%;
+            max-width: 380px;
+            margin: 0 auto;
+        }
+
+        .menu-btn-large {
+            background-color: #3b82f6;
+            color: #ffffff;
+            border: 4px solid #1e293b;
+            border-radius: 14px;
+            padding: 16px 20px;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 0.85rem;
+            cursor: pointer;
+            box-shadow: 0 6px 0 #1e293b;
+            transition: transform 0.1s, box-shadow 0.1s;
+            width: 100%;
+        }
+
+        .menu-btn-large:hover { transform: translateY(-2px); background-color: #2563eb; }
+        .menu-btn-large:active { transform: translateY(3px); box-shadow: 0 2px 0 #1e293b; }
+
+        .menu-btn-large.btn-locked {
+            background-color: #64748b;
+            opacity: 0.85;
+        }
+        .menu-btn-large.btn-locked:hover { background-color: #475569; }
+
+        .menu-btn-game { background-color: #10b981; }
+        .menu-btn-game:hover { background-color: #059669; }
+
+        /* PECAHAN MATEMATIKA RAPI */
+        .fraction-inline {
+            display: inline-flex;
+            flex-direction: column;
+            vertical-align: middle;
+            text-align: center;
+            font-size: 0.65rem;
+            font-weight: bold;
+            color: #1e293b;
+            line-height: 1;
+            padding: 0 3px;
+        }
+
+        .fraction-inline .numerator {
+            padding-bottom: 2px;
+            border-bottom: 2px solid #1e293b;
+        }
+
+        .fraction-inline .denominator {
+            padding-top: 2px;
+        }
+
+        /* MATERI INTERAKTIF */
+        .interactive-box {
+            background: #eef6ff;
+            border: 3px dashed #2563eb;
+            border-radius: 12px;
+            padding: 15px;
+            margin: 15px 0;
+            text-align: center;
+        }
+
+        .pizza-visual-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 18px;
+            margin: 10px 0;
+            flex-wrap: wrap;
+        }
+
+        .pizza-plate {
+            width: 120px;
+            height: 120px;
+            background-color: #f1f5f9;
+            border: 4px solid #1e293b;
+            border-radius: 50%;
+            position: relative;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr;
+            overflow: hidden;
+            box-shadow: inset 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .pizza-slice {
+            border: 2px solid #1e293b;
+            cursor: pointer;
+            transition: transform 0.2s, background-color 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #f59e0b;
+        }
+
+        .pizza-slice.selected { background-color: #10b981; }
+
+        .slice-1 { border-top-left-radius: 100%; }
+        .slice-2 { border-top-right-radius: 100%; }
+        .slice-3 { border-bottom-left-radius: 100%; }
+        .slice-4 { border-bottom-right-radius: 100%; }
+
+        .choice-btn-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 15px;
+        }
+
+        .option-btn {
+            background-color: #ffffff;
+            border: 3px solid #1e293b;
+            border-radius: 10px;
+            padding: 12px 8px;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 0.65rem;
+            color: #1e293b;
+            cursor: pointer;
+            box-shadow: 0 4px 0 #1e293b;
+            transition: transform 0.1s;
+        }
+
+        .option-btn:hover { background-color: #f1f5f9; transform: translateY(-2px); }
+        .option-btn:active { transform: translateY(2px); box-shadow: 0 2px 0 #1e293b; }
+
+        /* GAMEPLAY PLATFORMER CANVAS & CONTROLS */
+        .game-canvas-container {
+            position: relative;
+            width: 100%;
+            max-width: 720px;
+            height: 320px;
+            background: #7ec0ee;
+            border: 5px solid #1e293b;
+            border-radius: 14px;
+            overflow: hidden;
+            box-shadow: 0 6px 0 #1e293b;
+            margin-bottom: 10px;
+        }
+
+        canvas#gameCanvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        .touch-controls {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            max-width: 720px;
+            z-index: 20;
+            padding: 0 10px;
+        }
+
+        .d-pad, .action-pad {
+            display: flex;
+            gap: 10px;
+        }
+
+        .ctrl-btn {
+            background: #ffffff;
+            border: 3px solid #1e293b;
+            border-radius: 10px;
+            width: 50px;
+            height: 45px;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 1rem;
+            color: #1e293b;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            box-shadow: 0 4px 0 #1e293b;
+        }
+
+        .ctrl-btn:active { transform: translateY(2px); box-shadow: 0 2px 0 #1e293b; }
+
+        /* OVERLAY SOAL KUIS DALAM GAME */
+        .question-overlay {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(30, 41, 59, 0.88);
+            z-index: 300;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 15px;
+            color: #ffffff;
+            text-align: center;
+        }
+
+        .question-overlay.active { display: flex; }
+
+        .question-box {
+            background: #ffffff;
+            color: #1e293b;
+            border: 4px solid #ffd000;
+            border-radius: 14px;
+            padding: 15px;
+            width: 90%;
+            max-width: 550px;
+        }
+
+        .question-title {
+            font-size: 0.75rem;
+            color: #ff7700;
+            margin-bottom: 10px;
+        }
+
+        .question-text {
+            font-size: 0.65rem;
+            line-height: 1.8;
+            margin-bottom: 12px;
+        }
+
+        .feedback-text {
+            font-size: 0.6rem;
+            margin: 10px 0;
+            padding: 8px;
+            border-radius: 8px;
+            display: none;
+            white-space: pre-line;
+        }
+
+        .feedback-correct { background: #d1fae5; color: #065f46; border: 2px solid #10b981; }
+        .feedback-wrong { background: #fee2e2; color: #991b1b; border: 2px solid #ef4444; }
+
+        /* DIALOG MODAL RETRO/PIXEL ART MODAL */
+        .retro-modal-overlay {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.92);
+            z-index: 500;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .retro-modal-overlay.active { display: flex; }
+
+        .retro-modal-box {
+            background: #1e293b;
+            border: 6px solid #ef4444;
+            border-radius: 18px;
+            padding: 25px;
+            text-align: center;
+            max-width: 480px;
+            width: 90%;
+            box-shadow: 0 10px 0 #000000;
+        }
+
+        .retro-modal-title {
+            color: #ef4444;
+            font-size: 1rem;
+            margin-bottom: 15px;
+            text-shadow: 2px 2px 0 #000000;
+        }
+
+        .retro-modal-body {
+            color: #ffffff;
+            font-size: 0.6rem;
+            line-height: 2;
+            margin-bottom: 20px;
+        }
+
+        .retry-btn {
+            background-color: #ffd000;
+            color: #1e293b;
+            border: 4px solid #ffffff;
+            border-radius: 14px;
+            padding: 14px 28px;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 0.8rem;
+            cursor: pointer;
+            box-shadow: 0 6px 0 #000000;
+            transition: transform 0.1s;
+        }
+
+        .retry-btn:hover { transform: translateY(-2px); }
+        .retry-btn:active { transform: translateY(3px); box-shadow: 0 2px 0 #000000; }
+
+        .timer-badge {
+            background: #ef4444;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 0.7rem;
+            margin-bottom: 10px;
+            display: inline-block;
+        }
+
+        /* RESPONSIVE DESIGN */
+        @media (max-width: 768px) {
+            .title-text { font-size: 1.3rem; }
+            .title-speech-bubble { padding: 12px 18px; }
+            .game-card { padding: 16px 12px; }
+            .card-title { font-size: 0.8rem; }
+            .card-body { font-size: 0.55rem; line-height: 1.8; }
+            .menu-btn-large { font-size: 0.7rem; padding: 12px 14px; }
+            .back-btn, .next-btn { font-size: 0.75rem; padding: 10px 18px; }
+            .game-canvas-container { height: 250px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="game-container">
+        <!-- TOMBOL AUDIO DI POJOK KIRI ATAS -->
+        <button class="audio-control-btn" id="audioToggleBtn" title="Aktifkan/Matikan Audio">
+            <svg id="iconAudioOn" class="audio-icon" viewBox="0 0 24 24">
+                <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
+            </svg>
+            <svg id="iconAudioOff" class="audio-icon" viewBox="0 0 24 24" style="display: none;">
+                <path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/>
+            </svg>
+        </button>
+
+        <!-- PANEL STATUS SCORE, BINTANG, NYAWA -->
+        <div class="score-board-custom" id="globalScoreBoard" style="display: none;">
+            <div class="score-row">
+                <span>SKOR:</span>
+                <span class="score-value" id="uiScore">0</span>
+            </div>
+            <div class="score-row">
+                <span>NYAWA:</span>
+                <span class="lives-value" id="uiLives">❤️❤️❤️❤️❤️</span>
+            </div>
+            <div class="score-row">
+                <span>BINTANG:</span>
+                <div class="stars-container">
+                    <svg class="star-icon" viewBox="0 0 24 24"><path d="M12 .587l3.668 7.431 8.212 1.192-5.94 5.787 1.401 8.168-7.341-3.86-7.341 3.86 1.401-8.168-5.94-5.787 8.212-1.192z"/></svg>
+                    <span id="uiStarsCount" style="font-size:0.65rem;">0</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- AWAN BERGERAK -->
+        <div class="clouds"></div>
+
+        <!-- ================= HALAMAN 1 (UTAMA) ================= -->
+        <div class="page active" id="page1">
+            <div class="header-area">
+                <div class="title-speech-bubble">
+                    <h1 class="title-text">MATH JUMPER</h1>
+                </div>
+            </div>
+            <div class="main-stage">
+                <div class="character-box">
+                    <svg class="pixel-hero" viewBox="0 0 16 20" fill="none">
+                        <path d="M4 2H12V5H4V2Z" fill="#6d421e"/>
+                        <path d="M3 4H13V6H3V4Z" fill="#6d421e"/>
+                        <path d="M4 6H12V11H4V6Z" fill="#ffdbac"/>
+                        <rect x="5" y="7" width="2" height="2" fill="#1e293b"/>
+                        <rect x="9" y="7" width="2" height="2" fill="#1e293b"/>
+                        <path d="M3 11H13V16H3V11Z" fill="#e63946"/>
+                        <rect x="1" y="11" width="2" height="4" fill="#ffdbac"/>
+                        <rect x="13" y="10" width="2" height="4" fill="#ffdbac"/>
+                        <path d="M4 16H12V18H4V16Z" fill="#1d3557"/>
+                        <rect x="4" y="18" width="3" height="2" fill="#6d421e"/>
+                        <rect x="9" y="18" width="3" height="2" fill="#6d421e"/>
+                    </svg>
+                </div>
+                <div class="start-button-area">
+                    <button class="bubble-btn" id="btnStart">START</button>
+                </div>
+                <div class="trees">
+                    <div class="tree"></div><div class="tree"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= HALAMAN 2 (SAMBUTAN) ================= -->
+        <div class="page" id="page2">
+            <div class="game-card">
+                <h2 class="card-title">Selamat Datang!</h2>
+                <div class="card-body">
+                    Petualangan Matematika Pecahan Kelas 7 SMP dimulai!<br><br>
+                    Siapkan dirimu untuk melompati platform, mengumpulkan apel, dan menyelesaikan tantangan pecahan!
+                </div>
+            </div>
+            <div class="back-button-area"><button class="back-btn" onclick="navigateTo('page1')">KEMBALI</button></div>
+            <div class="next-button-area"><button class="next-btn" onclick="navigateTo('page3')">LANJUT</button></div>
+        </div>
+
+        <!-- ================= HALAMAN 3 (PENGATURAN KONTROL) ================= -->
+        <div class="page" id="page3">
+            <div class="game-card">
+                <h2 class="card-title">PANDUAN KONTROL</h2>
+                <div class="card-body">
+                    <b>Desktop:</b> Gunakan Panah Kanan/Kiri untuk Jalan, Spasi untuk Melompat.<br><br>
+                    <b>Mobile/HP:</b> Gunakan tombol di layar (&larr;, &rarr;, LOMPAT).<br><br>
+                    Sentuh Apel 🍎 untuk memicu soal pecahan!
+                </div>
+            </div>
+            <div class="back-button-area"><button class="back-btn" onclick="navigateTo('page2')">KEMBALI</button></div>
+            <div class="next-button-area"><button class="next-btn" onclick="navigateTo('page4')">LANJUT</button></div>
+        </div>
+
+        <!-- ================= HALAMAN 4 (PANDUAN ATURAN) ================= -->
+        <div class="page" id="page4">
+            <div class="game-card">
+                <h2 class="card-title">ATURAN PERMAINAN</h2>
+                <div class="card-body">
+                    1. Nyawa awal: ❤️ 5 Nyawa.<br>
+                    2. Jawaban Benar: +10 Poin.<br>
+                    3. Jawaban Salah: -1 Nyawa.<br>
+                    4. Capai garis FINISH untuk menyelesaikan modul!
+                </div>
+            </div>
+            <div class="back-button-area"><button class="back-btn" onclick="navigateTo('page3')">KEMBALI</button></div>
+            <div class="next-button-area"><button class="next-btn" onclick="navigateTo('page5')">LANJUT</button></div>
+        </div>
+
+        <!-- ================= HALAMAN 5 (PILIHAN MISI 1 DAN MISI 2) ================= -->
+        <div class="page" id="page5">
+            <div class="game-card">
+                <h2 class="card-title">PILIH MISI PETUALANGAN</h2>
+                <div class="vertical-menu">
+                    <button class="menu-btn-large" onclick="openMissionSubmenu(1)">MISI 1: PETUALANGAN PECAHAN</button>
+                    <button class="menu-btn-large btn-locked" id="btnMission2" onclick="openMissionSubmenu(2)">🔒 MISI 2: TANTANGAN PECAHAN</button>
+                </div>
+            </div>
+            <div class="back-button-area"><button class="back-btn" onclick="navigateTo('page4')">KEMBALI</button></div>
+        </div>
+
+        <!-- ================= HALAMAN PILIHAN MATERI / GAME ================= -->
+        <div class="page" id="pageMissionSubmenu">
+            <div class="game-card">
+                <h2 class="card-title" id="submenuTitle">MISI 1</h2>
+                <div class="vertical-menu">
+                    <button class="menu-btn-large" id="btnGoMateri">📖 PETA MATERI</button>
+                    <button class="menu-btn-large menu-btn-game" id="btnGoGame">🎮 MAIN GAME</button>
+                </div>
+            </div>
+            <div class="back-button-area"><button class="back-btn" onclick="navigateTo('page5')">KEMBALI</button></div>
+        </div>
+
+        <!-- ================= MATERI MODUL 1 ================= -->
+        <div class="page" id="page6">
+            <div class="game-card">
+                <h2 class="card-title">MENGENAL PECAHAN</h2>
+                <div class="card-body">
+                    Pecahan adalah bagian dari keseluruhan, ditulis
+                    <span class="fraction-inline"><span class="numerator">a</span><span class="denominator">b</span></span>
+                    dengan <b>a</b> sebagai pembilang dan <b>b</b> sebagai penyebut (b ≠ 0).
+                </div>
+                <div class="interactive-box">
+                    <p style="font-size: 0.6rem; margin-bottom: 8px;">Klik bagian pizza untuk mengarsir:</p>
+                    <div class="pizza-visual-container">
+                        <div class="pizza-plate">
+                            <div class="pizza-slice slice-1" onclick="toggleSlice(this)"></div>
+                            <div class="pizza-slice slice-2" onclick="toggleSlice(this)"></div>
+                            <div class="pizza-slice slice-3" onclick="toggleSlice(this)"></div>
+                            <div class="pizza-slice slice-4" onclick="toggleSlice(this)"></div>
+                        </div>
+                    </div>
+                    <div style="font-size: 0.7rem; margin-top: 10px; color:#2563eb;" id="pizzaValueText">
+                        Nilai Pecahan: <span class="fraction-inline"><span class="numerator" id="pNum">0</span><span class="denominator">4</span></span>
+                    </div>
+                </div>
+            </div>
+            <div class="back-button-area"><button class="back-btn" onclick="navigateTo('page5')">KEMBALI</button></div>
+            <div class="next-button-area"><button class="next-btn" onclick="navigateTo('page7')">LANJUT</button></div>
+        </div>
+
+        <div class="page" id="page7">
+            <div class="game-card">
+                <h2 class="card-title">PECAHAN SENILAI</h2>
+                <div class="card-body">
+                    Membagi pembilang dan penyebut dengan bilangan yang sama untuk menyederhanakan pecahan.<br><br>
+                    Contoh: 
+                    <span class="fraction-inline"><span class="numerator">48</span><span class="denominator">72</span></span>
+                    dibagi 24 = 
+                    <span class="fraction-inline"><span class="numerator">2</span><span class="denominator">3</span></span>
+                </div>
+                <div class="interactive-box">
+                    <p style="font-size:0.6rem;">Pilih faktor pembagi terkecil untuk 4/8:</p>
+                    <div class="choice-btn-grid">
+                        <button class="option-btn" onclick="checkMateriQuiz(this, false, 'Salah! Coba bagi dengan 4.')">Bagi 2</button>
+                        <button class="option-btn" onclick="checkMateriQuiz(this, true, 'Benar! 4/8 disederhanakan menjadi 1/2.')">Bagi 4</button>
+                    </div>
+                    <div class="feedback-text" id="materiFeedback7"></div>
+                </div>
+            </div>
+            <div class="back-button-area"><button class="back-btn" onclick="navigateTo('page6')">KEMBALI</button></div>
+            <div class="next-button-area"><button class="next-btn" onclick="startModuleGame(1)">MAIN GAME MODUL 1</button></div>
+        </div>
+
+        <!-- ================= HALAMAN GAME MODUL 1 ================= -->
+        <div class="page" id="pageGame1">
+            <div class="game-canvas-container">
+                <canvas id="canvasM1"></canvas>
+                <div class="question-overlay" id="qOverlayM1">
+                    <div class="question-box">
+                        <div class="question-title" id="qTitleM1">SOAL PECAHAN</div>
+                        <div class="question-text" id="qTextM1">Pertanyaan...</div>
+                        <div class="choice-btn-grid" id="qOptionsM1"></div>
+                        <div class="feedback-text" id="qFeedbackM1"></div>
+                        <button class="next-btn" id="qNextBtnM1" style="display:none; margin: 10px auto 0 auto;" onclick="closeQuestionOverlay()">LANJUT</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="touch-controls">
+                <div class="d-pad">
+                    <button class="ctrl-btn" id="btnLeft">&larr;</button>
+                    <button class="ctrl-btn" id="btnRight">&rarr;</button>
+                </div>
+                <div class="action-pad">
+                    <button class="ctrl-btn" id="btnJump" style="width: 80px;">LOMPAT</button>
+                </div>
+            </div>
+
+            <div class="back-button-area"><button class="back-btn" onclick="navigateTo('page5')">KELUAR</button></div>
+        </div>
+
+        <!-- ================= RINGKASAN & HASIL MODUL 1 ================= -->
+        <div class="page" id="page15">
+            <div class="game-card">
+                <h2 class="card-title">RINGKASAN MODUL 1</h2>
+                <div class="card-body">
+                    <b>Rangkuman:</b><br>
+                    • Menyederhanakan pecahan: membagi dengan FPB.<br>
+                    • Penjumlahan & Pengurangan: samakan penyebut lebih dahulu.<br>
+                    • Perkalian: Pembilang × Pembilang, Penyebut × Penyebut.<br>
+                    • Pembagian: Kalikan dengan kebalikan pecahan kedua.
+                </div>
+            </div>
+            <div class="next-button-area"><button class="next-btn" onclick="navigateTo('page16')">HASIL MODUL 1</button></div>
+        </div>
+
+        <div class="page" id="page16">
+            <div class="game-card">
+                <h2 class="card-title">HASIL MODUL 1</h2>
+                <div class="card-body">
+                    Skor Modul 1: <b id="resScoreM1">0</b><br>
+                    Jawaban Benar: <b id="resCorrectM1">0</b> / 5<br>
+                    Sisa Nyawa: <b id="resLivesM1">5</b>
+                </div>
+            </div>
+            <div class="next-button-area"><button class="next-btn" onclick="navigateTo('page17')">LANJUT</button></div>
+        </div>
+
+        <div class="page" id="page17">
+            <div class="game-card">
+                <h2 class="card-title">BONUS BINTANG!</h2>
+                <div class="card-body">
+                    ⭐ ⭐ ⭐<br><br>
+                    Selamat! Kamu menyelesaikan Modul 1 dan mendapatkan 3 Bintang!
+                </div>
+            </div>
+            <div class="next-button-area"><button class="next-btn" onclick="navigateTo('page18')">PEMBAHASAN</button></div>
+        </div>
+
+        <div class="page" id="page18">
+            <div class="game-card">
+                <h2 class="card-title">REVIEW & PEMBAHASAN MODUL 1</h2>
+                <div class="card-body" style="text-align: left; font-size: 0.55rem;">
+                    1. 48/72 = 2/3 (Bagi 24)<br>
+                    2. 3/4 + 2/5 = 15/20 + 8/20 = 23/20<br>
+                    3. 5/6 - 1/3 = 5/6 - 2/6 = 3/6 = 1/2<br>
+                    4. 3/8 × 4/9 = 12/72 = 1/6<br>
+                    5. 5/6 ÷ 2/3 = 5/6 × 3/2 = 15/12 = 5/4
+                </div>
+            </div>
+            <div class="next-button-area"><button class="next-btn" onclick="navigateTo('page19')">LANJUT</button></div>
+        </div>
+
+        <div class="page" id="page19">
+            <div class="game-card">
+                <h2 class="card-title">MODUL 1 SELESAI!</h2>
+                <div class="card-body">
+                    Kamu telah menyelesaikan seluruh tantangan di Modul 1. Bersiaplah menuju Modul 2!
+                </div>
+            </div>
+            <div class="next-button-area"><button class="next-btn" onclick="navigateTo('page20')">LANJUT</button></div>
+        </div>
+
+        <div class="page" id="page20">
+            <div class="game-card">
+                <h2 class="card-title">🎉 LEVEL UP! 🎉</h2>
+                <div class="card-body">
+                    SELAMAT! KAMU BERHASIL MENYELESAIKAN MISI 1.<br><br>
+                    MEMBUKA MISI 2: TANTANGAN PECAHAN & DESIMAL.
+                </div>
+            </div>
+            <div class="next-button-area"><button class="next-btn" onclick="navigateTo('page5')">LANJUT</button></div>
+        </div>
+
+        <!-- ================= MATERI MODUL 2 ================= -->
+        <div class="page" id="page21">
+            <div class="game-card">
+                <h2 class="card-title">PENGENALAN DESIMAL</h2>
+                <div class="card-body">
+                    Pecahan desimal adalah bentuk pecahan persepuluhan, persatusan, dsb.<br><br>
+                    Contoh: 0,5 = 5/10 = 1/2.
+                </div>
+            </div>
+            <div class="back-button-area"><button class="back-btn" onclick="navigateTo('page5')">KEMBALI</button></div>
+            <div class="next-button-area"><button class="next-btn" onclick="navigateTo('page22')">LANJUT</button></div>
+        </div>
+
+        <div class="page" id="page22">
+            <div class="game-card">
+                <h2 class="card-title">PECAHAN ➔ DESIMAL</h2>
+                <div class="card-body">
+                    Bagi pembilang dengan penyebut.<br>
+                    Contoh: 3/8 = 3 ÷ 8 = 0,375.
+                </div>
+            </div>
+            <div class="back-button-area"><button class="back-btn" onclick="navigateTo('page21')">KEMBALI</button></div>
+            <div class="next-button-area"><button class="next-btn" onclick="navigateTo('page23')">LANJUT</button></div>
+        </div>
+
+        <div class="page" id="page23">
+            <div class="game-card">
+                <h2 class="card-title">DESIMAL ➔ PECAHAN</h2>
+                <div class="card-body">
+                    Ubah ke per-10 atau per-100 lalu sederhanakan.<br>
+                    Contoh: 0,75 = 75/100 = 3/4.
+                </div>
+            </div>
+            <div class="back-button-area"><button class="back-btn" onclick="navigateTo('page22')">KEMBALI</button></div>
+            <div class="next-button-area"><button class="next-btn" onclick="startModuleGame(2)">MAIN GAME MODUL 2</button></div>
+        </div>
+
+        <!-- ================= HALAMAN GAME MODUL 2 ================= -->
+        <div class="page" id="pageGame2">
+            <div class="game-canvas-container">
+                <canvas id="canvasM2"></canvas>
+                <div class="question-overlay" id="qOverlayM2">
+                    <div class="question-box">
+                        <div class="question-title" id="qTitleM2">SOAL MODUL 2</div>
+                        <div class="question-text" id="qTextM2">Pertanyaan...</div>
+                        <div class="choice-btn-grid" id="qOptionsM2"></div>
+                        <div class="feedback-text" id="qFeedbackM2"></div>
+                        <button class="next-btn" id="qNextBtnM2" style="display:none; margin: 10px auto 0 auto;" onclick="closeQuestionOverlay()">LANJUT</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="touch-controls">
+                <div class="d-pad">
+                    <button class="ctrl-btn" id="btnLeft2">&larr;</button>
+                    <button class="ctrl-btn" id="btnRight2">&rarr;</button>
+                </div>
+                <div class="action-pad">
+                    <button class="ctrl-btn" id="btnJump2" style="width: 80px;">LOMPAT</button>
+                </div>
+            </div>
+
+            <div class="back-button-area"><button class="back-btn" onclick="navigateTo('page5')">KELUAR</button></div>
+        </div>
+
+        <!-- ================= HASIL & PEMBAHASAN MODUL 2 ================= -->
+        <div class="page" id="pageM2Result">
+            <div class="game-card">
+                <h2 class="card-title">HASIL MODUL 2</h2>
+                <div class="card-body">
+                    Skor Game Modul 2: <b id="resScoreM2">0</b><br>
+                    Jawaban Benar: <b id="resCorrectM2">0</b> / 5<br>
+                    Sisa Nyawa: <b id="resLivesM2">5</b>
+                </div>
+            </div>
+            <div class="next-button-area"><button class="next-btn" onclick="navigateTo('pageM2Review')">PEMBAHASAN</button></div>
+        </div>
+
+        <div class="page" id="pageM2Review">
+            <div class="game-card">
+                <h2 class="card-title">REVIEW & PEMBAHASAN MODUL 2</h2>
+                <div class="card-body" style="text-align: left; font-size: 0.55rem;">
+                    1. 3/8 = 3 ÷ 8 = 0,375<br>
+                    2. 0,75 = 75/100 = 3/4<br>
+                    3. 2 1/2 + 1 3/4 = 2 2/4 + 1 3/4 = 4 1/4 kg<br>
+                    4. 12 ÷ (3/4) = 12 × (4/3) = 16 potong<br>
+                    5. Sisa = 1 - (1/3 + 2/5) = 1 - 11/15 = 4/15
+                </div>
+            </div>
+            <div class="next-button-area"><button class="next-btn" onclick="showTotalAccumulatedScore()">SKOR AKUMULASI</button></div>
+        </div>
+
+        <!-- ================= SKOR AKUMULASI KESELURUHAN ================= -->
+        <div class="page" id="pageAccumulatedScore">
+            <div class="game-card">
+                <h2 class="card-title">📊 TOTAL SKOR AKUMULASI 📊</h2>
+                <div class="card-body">
+                    Skor Modul 1 + Modul 2: <b id="accumScoreVal">0</b><br><br>
+                    Total Bintang Terkumpul: <b id="accumStarsVal">⭐ 6 Bintang</b><br><br>
+                    Sisa Nyawa Terjaga: <b id="accumLivesVal">❤️❤️❤️❤️❤️</b>
+                </div>
+            </div>
+            <div class="next-button-area"><button class="next-btn" onclick="navigateTo('page31')">LANJUT</button></div>
+        </div>
+
+        <!-- ================= PENGAYAAN & TAHAP EVALUASI ================= -->
+        <div class="page" id="page31">
+            <div class="game-card">
+                <h2 class="card-title">TANTANGAN PENGAYAAN</h2>
+                <div class="card-body">
+                    Soal Cerita Tambahan:<br>
+                    Ibu membeli 3 1/2 kg gula dan menggunakan 1 1/4 kg. Berapa sisa gula Ibu?<br>
+                    <b>Jawaban: 2 1/4 kg</b>
+                </div>
+            </div>
+            <div class="next-button-area"><button class="next-btn" onclick="navigateTo('page32')">LANJUT</button></div>
+        </div>
+
+        <div class="page" id="page32">
+            <div class="game-card">
+                <h2 class="card-title">KUIS CAMPURAN</h2>
+                <div class="card-body">
+                    Latihan persiapan Evaluasi Akhir. Pastikan kamu sudah memahami seluruh operasi pecahan dan desimal!
+                </div>
+            </div>
+            <div class="next-button-area"><button class="next-btn" onclick="navigateTo('page33')">MAP KEMAJUAN</button></div>
+        </div>
+
+        <div class="page" id="page33">
+            <div class="game-card">
+                <h2 class="card-title">PETA KEMAJUAN</h2>
+                <div class="card-body">
+                    • Modul 1: SELESAI ✅<br>
+                    • Modul 2: SELESAI ✅<br>
+                    • Status: Siap Evaluasi Akhir!
+                </div>
+            </div>
+            <div class="next-button-area"><button class="next-btn" onclick="navigateTo('page34')">LANJUT</button></div>
+        </div>
+
+        <div class="page" id="page34">
+            <div class="game-card">
+                <h2 class="card-title">AKSES EVALUASI TERBUKA!</h2>
+                <div class="card-body">
+                    Kamu telah menyelesaikan Modul 1 & Modul 2!<br>
+                    Klik LANJUT untuk memulai Evaluasi Akhir (5 Soal, Timer 300 detik).
+                </div>
+            </div>
+            <div class="next-button-area"><button class="next-btn" onclick="startFinalEvaluation()">MULAI EVALUASI</button></div>
+        </div>
+
+        <!-- ================= EVALUASI AKHIR & HASIL ================= -->
+        <div class="page" id="page35">
+            <div class="game-card">
+                <div class="timer-badge" id="evalTimer">WAKTU: 300 Detik</div>
+                <h2 class="card-title" id="evalQuestionNum">SOAL 1/5</h2>
+                <div class="card-body" id="evalQuestionText">Pertanyaan Evaluasi...</div>
+                <div class="choice-btn-grid" id="evalOptionsGrid"></div>
+            </div>
+        </div>
+
+        <div class="page" id="page36">
+            <div class="game-card">
+                <h2 class="card-title">HASIL EVALUASI AKHIR</h2>
+                <div class="card-body">
+                    Skor Evaluasi: <b id="finalEvalScore">0</b> / 100<br>
+                    Jawaban Benar: <b id="finalEvalCorrect">0</b> / 5<br><br>
+                    <div id="badgeMasterContainer" style="display:none; color:#f59e0b; font-size:0.8rem; margin-top:10px;">
+                        🏅 LENCANA MASTER PECAHAN DITERIMA! 🏅
+                    </div>
+                </div>
+            </div>
+            <div class="next-button-area"><button class="next-btn" onclick="navigateTo('pageEvalReview')">PEMBAHASAN</button></div>
+        </div>
+
+        <!-- ================= PEMBAHASAN EVALUASI AKHIR ================= -->
+        <div class="page" id="pageEvalReview">
+            <div class="game-card">
+                <h2 class="card-title">REVIEW & PEMBAHASAN EVALUASI</h2>
+                <div class="card-body" style="text-align: left; font-size: 0.55rem;">
+                    1. 36/60 disederhanakan (bagi 12) = <b>3/5</b><br>
+                    2. 2/3 + 1/4 = 8/12 + 3/12 = <b>11/12</b><br>
+                    3. 4/5 diubah ke desimal (4 ÷ 5) = <b>0,8</b><br>
+                    4. 0,6 diubah ke pecahan biasa = 6/10 = <b>3/5</b><br>
+                    5. 3/4 × 2/3 = 6/12 disederhanakan = <b>1/2</b>
+                </div>
+            </div>
+            <div class="next-button-area"><button class="next-btn" onclick="navigateTo('page37')">SELESAI</button></div>
+        </div>
+
+        <!-- ================= HALAMAN PENUTUP ================= -->
+        <div class="page" id="page37">
+            <div class="game-card">
+                <h2 class="card-title">SELAMAT & TERIMA KASIH!</h2>
+                <div class="card-body">
+                    Kamu telah berhasil menyelesaikan seluruh petualangan game MATH JUMPER!<br><br>
+                    Teruslah berlatih matematika!
+                </div>
+                <div class="vertical-menu" style="margin-top: 15px;">
+                    <button class="menu-btn-large" onclick="handleReplayGame()">🔄 MAIN LAGI</button>
+                    <button class="menu-btn-large menu-btn-game" onclick="handleGoMainMenu()">🏠 MENU UTAMA</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- DIALOG MODAL RETRO ART PIXEL GAME OVER -->
+        <div class="retro-modal-overlay" id="gameOverModal">
+            <div class="retro-modal-box">
+                <div class="retro-modal-title">☠️ KAMU GAGAL! ☠️</div>
+                <div class="retro-modal-body">
+                    Nyawa kamu telah habis!<br><br>
+                    Silakan coba lagi dari Modul 1.
+                </div>
+                <button class="retry-btn" onclick="handleRetryFromModul1()">🔄 COBA LAGI</button>
+            </div>
+        </div>
+
+        <!-- DIALOG MODAL RETRO ART PIXEL TERKUNCI -->
+        <div class="retro-modal-overlay" id="lockedModal">
+            <div class="retro-modal-box" style="border-color: #ffd000;">
+                <div class="retro-modal-title" style="color: #ffd000;">🔒 MISI TERKUNCI! 🔒</div>
+                <div class="retro-modal-body">
+                    Harap menyelesaikan Misi 1 terlebih dahulu!
+                </div>
+                <button class="retry-btn" onclick="closeLockedModal()">OK, MENGERTI</button>
+            </div>
+        </div>
+
+        <!-- TANAH DASAR PIXEL -->
+        <div class="ground-container">
+            <div class="grass-layer"></div>
+            <div class="dirt-layer"></div>
+        </div>
+    </div>
+
+    <!-- AUDIO FILES ASLI ANDA -->
+    <audio id="bgMusic" loop preload="auto" src="velariomusic-calm-lo-fi-588883.mp3"></audio>
+    <audio id="buttonSound" preload="auto" src="mikeaveloo-soft_pop-538611.mp3"></audio>
+    
+    <!-- AUDIO TAMBAHAN EFEK SUARA -->
+    <audio id="correctSound" preload="auto" src="cartoon_music-glock-correct-answer-504462.mp3"></audio>
+    <audio id="wrongSound" preload="auto" src="freesound_community-wrong-buzzer-6268.mp3"></audio>
+    <audio id="finishSound" preload="auto" src="tithuh-level-up-523624.mp3"></audio>
+
+    <script>
+        /* STATE PERMAINAN GLOBAL */
+        const gameState = {
+            score: 0,
+            lives: 5,
+            stars: 0,
+            currentModule: 1,
+            activePage: 'page1',
+            m1Correct: 0,
+            m2Correct: 0,
+            isGameOver: false,
+            m1Completed: false
+        };
+
+        /* SOAL GAME MODUL 1 */
+        const questionsM1 = [
+            { id: 1, text: "Sederhanakan bentuk pecahan 48/72!", options: ["1/2", "2/3", "3/4", "5/6"], correct: 1, hint: "Bagi pembilang dan penyebut dengan 24." },
+            { id: 2, text: "Hitunglah hasil dari 3/4 + 2/5!", options: ["5/9", "1/20", "23/20", "11/20"], correct: 2, hint: "Samakan penyebut menjadi 20." },
+            { id: 3, text: "Hitunglah hasil dari 5/6 - 1/3!", options: ["1/2", "4/3", "2/3", "1/6"], correct: 0, hint: "Ubah 1/3 menjadi 2/6." },
+            { id: 4, text: "Hitunglah hasil dari 3/8 × 4/9!", options: ["1/6", "1/2", "7/17", "12/17"], correct: 0, hint: "Kalikan langsung lalu sederhanakan." },
+            { id: 5, text: "Hitunglah hasil dari 5/6 ÷ 2/3!", options: ["5/9", "5/4", "10/18", "1/2"], correct: 1, hint: "Ubah pembagian menjadi perkalian dengan 3/2." }
+        ];
+
+        /* SOAL GAME MODUL 2 */
+        const questionsM2 = [
+            { id: 1, text: "Ubah pecahan 3/8 menjadi bentuk desimal!", options: ["0,375", "0,25", "0,625", "0,125"], correct: 0, hint: "3 ÷ 8 = 0,375." },
+            { id: 2, text: "Ubah desimal 0,75 menjadi pecahan paling sederhana!", options: ["3/4", "7/10", "1/2", "4/5"], correct: 0, hint: "75/100 disederhanakan." },
+            { id: 3, text: "Ibu membeli 2 1/2 kg dan 1 3/4 kg tepung. Total beratnya?", options: ["4 1/4 kg", "3 1/2 kg", "4 1/2 kg", "3 3/4 kg"], correct: 0, hint: "2 2/4 + 1 3/4 = 4 1/4." },
+            { id: 4, text: "Tali 12 meter dipotong masing-masing 3/4 meter. Berapa potong?", options: ["16 potong", "9 potong", "15 potong", "12 potong"], correct: 0, hint: "12 ÷ (3/4) = 12 × (4/3) = 16." },
+            { id: 5, text: "Sisa tanah setelah 1/3 ditanami jagung & 2/5 ditanami padi?", options: ["4/15", "7/15", "1/15", "2/15"], correct: 0, hint: "1 - (5/15 + 6/15) = 4/15." }
+        ];
+
+        /* SOAL EVALUASI AKHIR */
+        const evalQuestions = [
+            { q: "Sederhanakan pecahan 36/60!", opts: ["3/5", "2/3", "4/5", "1/2"], ans: 0 },
+            { q: "Hasil dari 2/3 + 1/4 adalah...", opts: ["11/12", "3/7", "5/12", "7/12"], ans: 0 },
+            { q: "Bentuk desimal dari 4/5 adalah...", opts: ["0,8", "0,75", "0,4", "0,85"], ans: 0 },
+            { q: "Bentuk pecahan biasa dari 0,6 adalah...", opts: ["3/5", "6/10", "2/3", "4/5"], ans: 0 },
+            { q: "Hasil dari 3/4 × 2/3 adalah...", opts: ["1/2", "6/12", "5/7", "2/3"], ans: 0 }
+        ];
+
+        let currentEvalIdx = 0;
+        let evalCorrectCount = 0;
+        let evalTimerInterval = null;
+        let evalTimeLeft = 300;
+
+        /* MANAJEMEN AUDIO & INTERAKSI */
+        document.addEventListener('DOMContentLoaded', () => {
+            const bgMusic = document.getElementById('bgMusic');
+            const buttonSound = document.getElementById('buttonSound');
+            const correctSound = document.getElementById('correctSound');
+            const wrongSound = document.getElementById('wrongSound');
+            const finishSound = document.getElementById('finishSound');
+            const audioToggleBtn = document.getElementById('audioToggleBtn');
+            const iconAudioOn = document.getElementById('iconAudioOn');
+            const iconAudioOff = document.getElementById('iconAudioOff');
+
+            let isMutedByUser = false;
+
+            window.playSoundEffect = function() {
+                try {
+                    buttonSound.pause();
+                    buttonSound.currentTime = 0;
+                    buttonSound.volume = 0.8;
+                    const p = buttonSound.play();
+                    if (p !== undefined) p.catch(() => {});
+                } catch (e) {}
+            };
+
+            window.playCorrectSound = function() {
+                try {
+                    correctSound.pause();
+                    correctSound.currentTime = 0;
+                    correctSound.volume = 0.9;
+                    const p = correctSound.play();
+                    if (p !== undefined) p.catch(() => {});
+                } catch (e) {}
+            };
+
+            window.playWrongSound = function() {
+                try {
+                    wrongSound.pause();
+                    wrongSound.currentTime = 0;
+                    wrongSound.volume = 0.9;
+                    const p = wrongSound.play();
+                    if (p !== undefined) p.catch(() => {});
+                } catch (e) {}
+            };
+
+            window.playFinishSound = function() {
+                try {
+                    finishSound.pause();
+                    finishSound.currentTime = 0;
+                    finishSound.volume = 1.0;
+                    const p = finishSound.play();
+                    if (p !== undefined) p.catch(() => {});
+                } catch (e) {}
+            };
+
+            function updateAudioUI(isPlaying) {
+                if (isPlaying && !isMutedByUser) {
+                    iconAudioOn.style.display = 'block';
+                    iconAudioOff.style.display = 'none';
+                } else {
+                    iconAudioOn.style.display = 'none';
+                    iconAudioOff.style.display = 'block';
+                }
+            }
+
+            function playBacksound() {
+                if (isMutedByUser) return;
+                bgMusic.volume = 0.3;
+                const p = bgMusic.play();
+                if (p !== undefined) {
+                    p.then(() => updateAudioUI(true)).catch(() => updateAudioUI(false));
+                }
+            }
+
+            playBacksound();
+
+            document.addEventListener('pointerdown', () => { if (bgMusic.paused && !isMutedByUser) playBacksound(); }, { once: true });
+
+            audioToggleBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                playSoundEffect();
+                if (bgMusic.paused) {
+                    isMutedByUser = false;
+                    bgMusic.play().then(() => updateAudioUI(true)).catch(() => {});
+                } else {
+                    isMutedByUser = true;
+                    bgMusic.pause();
+                    updateAudioUI(false);
+                }
+            });
+
+            document.getElementById('btnStart').addEventListener('click', () => {
+                playSoundEffect();
+                navigateTo('page2');
+            });
+        });
+
+        /* NAVIGASI HALAMAN */
+        function navigateTo(pageId) {
+            playSoundEffect();
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            const target = document.getElementById(pageId);
+            if (target) {
+                target.classList.add('active');
+                gameState.activePage = pageId;
+            }
+
+            if (pageId === 'page17' && !gameState.m1Completed) {
+                gameState.stars += 3;
+                gameState.m1Completed = true;
+            }
+
+            // Putar sound effect khusus akhir modul/evaluasi jika memasuki halaman tertentu
+            if (['page20', 'pageAccumulatedScore', 'page36'].includes(pageId)) {
+                if (typeof window.playFinishSound === 'function') {
+                    window.playFinishSound();
+                }
+            }
+
+            const btnM2 = document.getElementById('btnMission2');
+            if (btnM2) {
+                if (gameState.m1Completed) {
+                    btnM2.classList.remove('btn-locked');
+                    btnM2.innerText = "MISI 2: TANTANGAN PECAHAN";
+                } else {
+                    btnM2.classList.add('btn-locked');
+                    btnM2.innerText = "🔒 MISI 2: TANTANGAN PECAHAN";
+                }
+            }
+
+            const scoreBoard = document.getElementById('globalScoreBoard');
+            if (['page1', 'page35', 'page36', 'pageEvalReview', 'page37'].includes(pageId)) {
+                scoreBoard.style.display = 'none';
+            } else {
+                scoreBoard.style.display = 'flex';
+                updateScoreUI();
+            }
+        }
+
+        function updateScoreUI() {
+            document.getElementById('uiScore').innerText = gameState.score;
+            document.getElementById('uiLives').innerText = '❤️'.repeat(Math.max(0, gameState.lives));
+            document.getElementById('uiStarsCount').innerText = gameState.stars;
+        }
+
+        /* SUBMENU MISI */
+        function openMissionSubmenu(modNum) {
+            if (modNum === 2 && !gameState.m1Completed) {
+                playSoundEffect();
+                document.getElementById('lockedModal').classList.add('active');
+                return;
+            }
+
+            gameState.currentModule = modNum;
+            document.getElementById('submenuTitle').innerText = `MISI ${modNum}: MODUL ${modNum}`;
+            document.getElementById('btnGoMateri').onclick = () => navigateTo(modNum === 1 ? 'page6' : 'page21');
+            document.getElementById('btnGoGame').onclick = () => startModuleGame(modNum);
+            navigateTo('pageMissionSubmenu');
+        }
+
+        function closeLockedModal() {
+            playSoundEffect();
+            document.getElementById('lockedModal').classList.remove('active');
+        }
+
+        /* MATERI INTERAKTIF */
+        function toggleSlice(element) {
+            playSoundEffect();
+            element.classList.toggle('selected');
+            const selectedCount = document.querySelectorAll('.pizza-slice.selected').length;
+            document.getElementById('pNum').innerText = selectedCount;
+        }
+
+        function checkMateriQuiz(btn, isCorrect, feedbackMsg) {
+            if (isCorrect) {
+                if (typeof window.playCorrectSound === 'function') window.playCorrectSound();
+            } else {
+                if (typeof window.playWrongSound === 'function') window.playWrongSound();
+            }
+            const fb = document.getElementById('materiFeedback7');
+            fb.style.display = 'block';
+            fb.innerText = feedbackMsg;
+            fb.className = isCorrect ? 'feedback-text feedback-correct' : 'feedback-text feedback-wrong';
+        }
+
+        /* TAMPILKAN SKOR AKUMULASI KESELURUHAN */
+        function showTotalAccumulatedScore() {
+            if (gameState.stars < 6) {
+                gameState.stars += 3;
+            }
+            updateScoreUI();
+
+            document.getElementById('accumScoreVal').innerText = gameState.score;
+            document.getElementById('accumStarsVal').innerText = `⭐ ${gameState.stars} Bintang`;
+            document.getElementById('accumLivesVal').innerText = '❤️'.repeat(Math.max(0, gameState.lives));
+
+            navigateTo('pageAccumulatedScore');
+        }
+
+        /* ================= GAMEPLAY PLATFORMER ENGINE ================= */
+        let gameLoopId = null;
+
+        function drawPixelHero(ctx, x, y, width, height, isMoving, isJumping) {
+            ctx.save();
+            ctx.translate(x, y);
+            const scaleX = width / 16;
+            const scaleY = height / 20;
+            ctx.scale(scaleX, scaleY);
+
+            let legOffset = 0;
+            if (isMoving && !isJumping) {
+                legOffset = Math.sin(Date.now() / 100) * 1.5;
+            }
+
+            ctx.fillStyle = '#6d421e';
+            ctx.fillRect(4, 2, 8, 3);
+            ctx.fillRect(3, 4, 10, 2);
+
+            ctx.fillStyle = '#ffdbac';
+            ctx.fillRect(4, 6, 8, 5);
+
+            ctx.fillStyle = '#1e293b';
+            ctx.fillRect(5, 7, 2, 2);
+            ctx.fillRect(9, 7, 2, 2);
+
+            ctx.fillStyle = '#e63946';
+            ctx.fillRect(3, 11, 10, 5);
+
+            ctx.fillStyle = '#ffdbac';
+            ctx.fillRect(1, 11, 2, 4);
+            ctx.fillRect(13, 10, 2, 4);
+
+            ctx.fillStyle = '#1d3557';
+            ctx.fillRect(4, 16, 8, 2);
+
+            ctx.fillStyle = '#6d421e';
+            ctx.fillRect(4, 18 + legOffset, 3, 2);
+            ctx.fillRect(9, 18 - legOffset, 3, 2);
+
+            ctx.restore();
+        }
+
+        function drawFinishFlag(ctx, x, y) {
+            ctx.save();
+            ctx.fillStyle = '#475569';
+            ctx.fillRect(x, y, 6, 75);
+
+            const tileSize = 8;
+            for (let r = 0; r < 4; r++) {
+                for (let c = 0; c < 5; c++) {
+                    ctx.fillStyle = (r + c) % 2 === 0 ? '#ffffff' : '#1e293b';
+                    ctx.fillRect(x + 6 + (c * tileSize), y + (r * tileSize), tileSize, tileSize);
+                }
+            }
+            ctx.restore();
+        }
+
+        function startModuleGame(modNum) {
+            gameState.currentModule = modNum;
+            gameState.isGameOver = false;
+
+            if (modNum === 1) {
+                gameState.lives = 5;
+                gameState.m1Correct = 0;
+            } else {
+                gameState.m2Correct = 0;
+            }
+            
+            updateScoreUI();
+
+            navigateTo(modNum === 1 ? 'pageGame1' : 'pageGame2');
+            
+            const canvasId = modNum === 1 ? 'canvasM1' : 'canvasM2';
+            const canvas = document.getElementById(canvasId);
+            const ctx = canvas.getContext('2d');
+
+            canvas.width = 720;
+            canvas.height = 320;
+
+            const questions = modNum === 1 ? questionsM1 : questionsM2;
+
+            const player = {
+                x: 30, y: 200, width: 32, height: 40,
+                vx: 0, vy: 0, isJumping: false, speed: 3.5, jumpForce: -9.5,
+                grounded: false
+            };
+
+            const platforms = [
+                { x: 0, y: 270, w: 720, h: 50 },
+                { x: 120, y: 210, w: 90, h: 16 },
+                { x: 260, y: 160, w: 90, h: 16 },
+                { x: 400, y: 210, w: 90, h: 16 },
+                { x: 540, y: 150, w: 100, h: 16 }
+            ];
+
+            const apples = questions.map((q, idx) => {
+                const posX = 140 + idx * 110;
+                const posY = idx % 2 === 0 ? 170 : 120;
+                return { x: posX, y: posY, w: 20, h: 20, collected: false, questionData: q };
+            });
+
+            const finishLine = { x: 650, y: 195, w: 45, h: 75 };
+
+            const keys = { left: false, right: false, up: false };
+
+            function setupKeyEvents() {
+                window.onkeydown = (e) => {
+                    if (e.key === 'ArrowLeft') keys.left = true;
+                    if (e.key === 'ArrowRight') keys.right = true;
+                    if (e.key === ' ' || e.key === 'ArrowUp') keys.up = true;
+                };
+                window.onkeyup = (e) => {
+                    if (e.key === 'ArrowLeft') keys.left = false;
+                    if (e.key === 'ArrowRight') keys.right = false;
+                    if (e.key === ' ' || e.key === 'ArrowUp') keys.up = false;
+                };
+
+                const leftBtn = document.getElementById(modNum === 1 ? 'btnLeft' : 'btnLeft2');
+                const rightBtn = document.getElementById(modNum === 1 ? 'btnRight' : 'btnRight2');
+                const jumpBtn = document.getElementById(modNum === 1 ? 'btnJump' : 'btnJump2');
+
+                leftBtn.ontouchstart = leftBtn.onmousedown = () => keys.left = true;
+                leftBtn.ontouchend = leftBtn.onmouseup = () => keys.left = false;
+                rightBtn.ontouchstart = rightBtn.onmousedown = () => keys.right = true;
+                rightBtn.ontouchend = rightBtn.onmouseup = () => keys.right = false;
+                jumpBtn.ontouchstart = jumpBtn.onmousedown = () => keys.up = true;
+                jumpBtn.ontouchend = jumpBtn.onmouseup = () => keys.up = false;
+            }
+
+            setupKeyEvents();
+
+            let pausedForQuestion = false;
+
+            function update() {
+                if (pausedForQuestion) return;
+
+                if (keys.left) player.vx = -player.speed;
+                else if (keys.right) player.vx = player.speed;
+                else player.vx = 0;
+
+                if (keys.up && !player.isJumping && player.grounded) {
+                    player.vy = player.jumpForce;
+                    player.isJumping = true;
+                    player.grounded = false;
+                }
+
+                player.vy += 0.5;
+                player.x += player.vx;
+                player.y += player.vy;
+
+                if (player.x < 0) player.x = 0;
+                if (player.x + player.width > canvas.width) player.x = canvas.width - player.width;
+
+                player.grounded = false;
+                platforms.forEach(p => {
+                    if (player.x < p.x + p.w && player.x + player.width > p.x &&
+                        player.y + player.height >= p.y && player.y + player.height <= p.y + p.h + player.vy) {
+                        player.y = p.y - player.height;
+                        player.vy = 0;
+                        player.isJumping = false;
+                        player.grounded = true;
+                    }
+                });
+
+                apples.forEach(apple => {
+                    if (!apple.collected &&
+                        player.x < apple.x + apple.w && player.x + player.width > apple.x &&
+                        player.y < apple.y + apple.h && player.y + player.height > apple.y) {
+                        
+                        apple.collected = true;
+                        pausedForQuestion = true;
+                        triggerQuestionModal(modNum, apple.questionData, () => {
+                            pausedForQuestion = false;
+                        });
+                    }
+                });
+
+                if (player.x + player.width >= finishLine.x && player.y + player.height >= finishLine.y) {
+                    cancelAnimationFrame(gameLoopId);
+                    if (modNum === 1) {
+                        document.getElementById('resScoreM1').innerText = gameState.score;
+                        document.getElementById('resCorrectM1').innerText = gameState.m1Correct;
+                        document.getElementById('resLivesM1').innerText = gameState.lives;
+                        navigateTo('page15');
+                    } else {
+                        document.getElementById('resScoreM2').innerText = gameState.score;
+                        document.getElementById('resCorrectM2').innerText = gameState.m2Correct;
+                        document.getElementById('resLivesM2').innerText = gameState.lives;
+                        navigateTo('pageM2Result');
+                    }
+                }
+            }
+
+            function draw() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                ctx.fillStyle = '#7ec0ee';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                platforms.forEach(p => {
+                    ctx.fillStyle = '#4e8b23';
+                    ctx.fillRect(p.x, p.y, p.w, p.h);
+                    ctx.fillStyle = '#8b5a2b';
+                    ctx.fillRect(p.x, p.y + 4, p.w, p.h - 4);
+                });
+
+                apples.forEach(a => {
+                    if (!a.collected) {
+                        ctx.fillStyle = '#ef4444';
+                        ctx.beginPath();
+                        ctx.arc(a.x + 10, a.y + 10, 8, 0, Math.PI * 2);
+                        ctx.fill();
+                        ctx.fillStyle = '#a2e06a';
+                        ctx.fillRect(a.x + 9, a.y + 1, 3, 3);
+                    }
+                });
+
+                drawFinishFlag(ctx, finishLine.x, finishLine.y);
+
+                const isMoving = Math.abs(player.vx) > 0;
+                drawPixelHero(ctx, player.x, player.y, player.width, player.height, isMoving, player.isJumping);
+            }
+
+            function loop() {
+                update();
+                draw();
+                if (gameState.activePage === (modNum === 1 ? 'pageGame1' : 'pageGame2')) {
+                    gameLoopId = requestAnimationFrame(loop);
+                }
+            }
+
+            if (gameLoopId) cancelAnimationFrame(gameLoopId);
+            loop();
+        }
+
+        /* OVERLAY SOAL IN-GAME */
+        let onQuestionResumeCallback = null;
+
+        function triggerQuestionModal(modNum, qData, onResume) {
+            playSoundEffect();
+            onQuestionResumeCallback = onResume;
+
+            const overlay = document.getElementById(modNum === 1 ? 'qOverlayM1' : 'qOverlayM2');
+            const title = document.getElementById(modNum === 1 ? 'qTitleM1' : 'qTitleM2');
+            const text = document.getElementById(modNum === 1 ? 'qTextM1' : 'qTextM2');
+            const grid = document.getElementById(modNum === 1 ? 'qOptionsM1' : 'qOptionsM2');
+            const fb = document.getElementById(modNum === 1 ? 'qFeedbackM1' : 'qFeedbackM2');
+            const nextBtn = document.getElementById(modNum === 1 ? 'qNextBtnM1' : 'qNextBtnM2');
+
+            title.innerText = `SOAL NO ${qData.id}`;
+            text.innerText = qData.text;
+            fb.style.display = 'none';
+            nextBtn.style.display = 'none';
+
+            grid.innerHTML = '';
+            qData.options.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.innerText = opt;
+                btn.onclick = () => {
+                    Array.from(grid.children).forEach(b => b.disabled = true);
+                    
+                    if (idx === qData.correct) {
+                        if (typeof window.playCorrectSound === 'function') window.playCorrectSound();
+                        gameState.score += 10;
+                        if (modNum === 1) gameState.m1Correct++;
+                        else gameState.m2Correct++;
+
+                        fb.className = 'feedback-text feedback-correct';
+                        fb.innerText = 'Jawaban Benar! (+10 Poin)';
+                    } else {
+                        if (typeof window.playWrongSound === 'function') window.playWrongSound();
+                        gameState.lives--;
+                        fb.className = 'feedback-text feedback-wrong';
+
+                        if (gameState.lives <= 0) {
+                            gameState.lives = 0;
+                            gameState.isGameOver = true;
+                            fb.innerText = `Jawaban Salah! (-1 Nyawa)\n\n⚠️ NYAWA KAMU HABIS!`;
+                        } else {
+                            fb.innerText = `Jawaban Salah! (-1 Nyawa)\nPembahasan: ${qData.hint}`;
+                        }
+                    }
+                    fb.style.display = 'block';
+                    nextBtn.style.display = 'inline-block';
+                    updateScoreUI();
+                };
+                grid.appendChild(btn);
+            });
+
+            overlay.classList.add('active');
+        }
+
+        function closeQuestionOverlay() {
+            playSoundEffect();
+            document.getElementById('qOverlayM1').classList.remove('active');
+            document.getElementById('qOverlayM2').classList.remove('active');
+
+            if (gameState.isGameOver) {
+                document.getElementById('gameOverModal').classList.add('active');
+            } else if (onQuestionResumeCallback) {
+                onQuestionResumeCallback();
+            }
+        }
+
+        function handleRetryFromModul1() {
+            playSoundEffect();
+            document.getElementById('gameOverModal').classList.remove('active');
+            
+            gameState.score = 0;
+            gameState.stars = 0;
+            gameState.lives = 5;
+            gameState.m1Correct = 0;
+            gameState.m2Correct = 0;
+            gameState.isGameOver = false;
+            gameState.m1Completed = false;
+            
+            updateScoreUI();
+            startModuleGame(1);
+        }
+
+        /* EVALUASI AKHIR */
+        function startFinalEvaluation() {
+            currentEvalIdx = 0;
+            evalCorrectCount = 0;
+            evalTimeLeft = 300;
+            navigateTo('page35');
+
+            if (evalTimerInterval) clearInterval(evalTimerInterval);
+            evalTimerInterval = setInterval(() => {
+                evalTimeLeft--;
+                document.getElementById('evalTimer').innerText = `WAKTU: ${evalTimeLeft} Detik`;
+                if (evalTimeLeft <= 0) {
+                    clearInterval(evalTimerInterval);
+                    finishEvaluation();
+                }
+            }, 1000);
+
+            renderEvalQuestion();
+        }
+
+        function renderEvalQuestion() {
+            if (currentEvalIdx >= evalQuestions.length) {
+                finishEvaluation();
+                return;
+            }
+
+            const q = evalQuestions[currentEvalIdx];
+            document.getElementById('evalQuestionNum').innerText = `SOAL ${currentEvalIdx + 1} / ${evalQuestions.length}`;
+            document.getElementById('evalQuestionText').innerText = q.q;
+
+            const grid = document.getElementById('evalOptionsGrid');
+            grid.innerHTML = '';
+
+            q.opts.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.innerText = opt;
+                btn.onclick = () => {
+                    if (idx === q.ans) {
+                        if (typeof window.playCorrectSound === 'function') window.playCorrectSound();
+                        evalCorrectCount++;
+                    } else {
+                        if (typeof window.playWrongSound === 'function') window.playWrongSound();
+                    }
+                    currentEvalIdx++;
+                    renderEvalQuestion();
+                };
+                grid.appendChild(btn);
+            });
+        }
+
+        function finishEvaluation() {
+            if (evalTimerInterval) clearInterval(evalTimerInterval);
+            const score = (evalCorrectCount / evalQuestions.length) * 100;
+
+            document.getElementById('finalEvalScore').innerText = score;
+            document.getElementById('finalEvalCorrect').innerText = evalCorrectCount;
+
+            const badgeContainer = document.getElementById('badgeMasterContainer');
+            if (score >= 80) {
+                badgeContainer.style.display = 'block';
+            } else {
+                badgeContainer.style.display = 'none';
+            }
+
+            navigateTo('page36');
+        }
+
+        /* TOMBOL MAIN LAGI DI PENUTUP (MENU PILIHAN MISI) */
+        function handleReplayGame() {
+            gameState.score = 0;
+            gameState.lives = 5;
+            gameState.stars = 0;
+            gameState.m1Correct = 0;
+            gameState.m2Correct = 0;
+            gameState.isGameOver = false;
+            gameState.m1Completed = false;
+            updateScoreUI();
+            navigateTo('page5');
+        }
+
+        /* TOMBOL MENU UTAMA DI PENUTUP (HALAMAN AWAL) */
+        function handleGoMainMenu() {
+            gameState.score = 0;
+            gameState.lives = 5;
+            gameState.stars = 0;
+            gameState.m1Correct = 0;
+            gameState.m2Correct = 0;
+            gameState.isGameOver = false;
+            gameState.m1Completed = false;
+            updateScoreUI();
+            navigateTo('page1');
+        }
+    </script>
+</body>
+</html>
